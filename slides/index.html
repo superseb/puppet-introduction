@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Introduction to Puppet</title>
+
+		<meta name="description" content="Introduction to Puppet">
+		<meta name="author" content="Adé Mochtar">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write('<link rel="stylesheet" href="css/print/' + (window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">');
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h2>Introduction to</h2>
+					<h1>Puppet</h1>
+
+				</section>
+
+				<section>
+					<section>
+						<h2>What is Puppet?</h2>
+					</section>
+					<section>
+						<h2>#Configuration Management</h2>
+					</section>
+					<section>
+						<h2>Standalone</h2>
+						<p>
+							vs.
+						</p>
+						<h2>Master / Agent</h2>
+					</section>
+					<section>
+						<h2>DSL</h2>
+						<p>
+							Domain Specific Language
+						</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Language Basics</h2>
+						<p>
+							Types => Providers
+						</p>
+						<img src="images/resources-providers.png" alt="Resources vs Providers" />
+					</section>
+					<section>
+						<h2>Core Types</h2>
+						<ul>
+							<li>file</li>
+							<li>service</li>
+							<li>package</li>
+							<li>user</li>
+							<li>group</li>
+							<li>cron</li>
+							<li>and many many more....</li>
+						</ul>
+					</section>
+					<section>
+						<h2>Basic Resource Syntax</h2>
+						<pre><code contenteditable class="ruby">
+resource_type { 'title':
+  ensure      => present,
+  attribute_1 => 'value',
+  attribute_2 => ['more', 'values'],
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Manifests</h2>
+						<p>
+							site.pp
+						</p>
+						<pre><code contenteditable class="ruby">
+notify { 'Greeting':
+  message => 'Puppet says hi!',
+}
+						</code></pre>
+						<p>
+							will result in
+						</p>
+						<pre><code contenteditable class="no-highlight">
+Running Puppet with standalone.pp...
+notice: Puppet says hi!
+notice: /Stage[main]//Node[default]/Notify[Greeting]/message:
+    defined 'message' as 'Puppet says hi!'
+notice: Finished catalog run in 0.05 seconds
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Exercise: Using Vagrant</h2>
+						<pre><code contenteditable class="bash">
+$ git clone https://github.com/xebia/puppet-introduction.git
+
+$ vagrant up
+
+$ vagrant provision
+Will run puppet apply site.pp on VirtualBox image
+
+$ vagrant ssh
+						</code></pre>
+						<p>
+							<a href="https://github.com/xebia/puppet-introduction">https://github.com/xebia/puppet-introduction</a>
+						</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Puppet CLI</h2>
+						<pre><code contenteditable class="no-highlight">
+$ puppet help
+Usage: puppet <subcommand> [options] <action> [options]
+
+Available subcommands:
+
+  apply     Apply Puppet manifests locally
+  describe  Display help about resource types
+  man       Display Puppet manual pages
+  resource  The resource abstraction layer shell
+
+  ... and many more ....
+
+See 'puppet help &lt;subcommand&gt;' for help on a specific subcommand.
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Exercise: Puppet CLI</h2>
+						<pre><code contenteditable class="bash">
+$ vagrant ssh
+
+$ sudo su -
+
+$ puppet describe user
+
+$ puppet resources user root
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Exercise:<br/>Create a static file</h2>
+						<p>
+							manifests/site.pp
+						</p>
+						<pre><code contenteditable class="ruby">
+file { 'static':
+	ensure	=> present,
+	path	=> '/tmp/static.txt',
+	content	=> 'Puppet FTW',
+}						</code></pre>
+					</section>
+
+					<section>
+						<h2>Facts</h2>
+						<p>
+							Hostname? IP address?
+						</p>
+						<p>
+							&nbsp;
+						</p>
+						<h3 class="fragment">Enter facter</h3>
+						<p>
+							&nbsp;
+						</p>
+						<p class="fragment">
+							Extracts information from system ...
+							<br/>
+							... and passes them as variables to puppet
+						</p>
+					</section>
+
+					<section>
+						<h2>Exercise:<br />List available facts</h2>
+						<pre><code contenteditable class="ruby">
+$ vagrant ssh
+
+$ sudo su -
+
+$ facter
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Exercise: File with dynamic content</h2>
+						<pre><code contenteditable class="ruby">
+file { 'dynamic':
+  ensure   => present,
+  path     => '/tmp/dynamic.txt',
+  content  => "${hostname} ${ipaddress}",
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h2>Exercise: Create user</h2>
+					<pre><code contenteditable class="ruby">
+user { 'username':
+  ensure      => present,
+  uid         => '1337',
+  managehome  => true,
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<section>
+						<h2>Ordering</h2>
+						<p>
+							Puppet DSL is declarative
+						</p>
+						<p class="fragment">
+							You specify the end state of a machine ...
+						</p>
+						<p class="fragment">
+							... and Puppet will execute at a consistent but <em>unpredictable</em> order
+						</p>
+					</section>
+					<section>
+						<h2>Ordering</h2>
+						<pre><code contenteditable class="ruby">
+notify { 'First': }
+notify { 'Second': }
+						</code></pre>
+						<p class="fragment">... results in ... </p>
+						<pre class="fragment"><code contenteditable class="ruby">
+Running Puppet with site.pp...
+notice: Second
+notice: /Stage[main]//Node[default]/Notify[Second]/message:
+	defined 'message' as 'Second'
+notice: First
+notice: /Stage[main]//Node[default]/Notify[First]/message:
+	defined 'message' as 'First'
+						</code></pre>
+					</section>
+					<section>
+						<h2>Ordering</h2>
+						<pre><code contenteditable class="ruby">
+notify { 'First': }
+notify { 'Second':
+  require  => Notify['First']
+}
+						</code></pre>
+						<p>
+							shorthand:
+						</p>
+						<pre><code contenteditable class="ruby">
+notify{ 'First': } -> notify {'Second': }
+						</code></pre>
+					</section>
+					<section>
+						<h2>Ordering</h2>
+						<p>
+							Four relationships
+							<ul>
+								<li>
+									require (<code>-&gt;</code>)
+								</li>
+								<li>
+									before (<code>&lt;-</code>)
+								</li>
+								<li>
+									notify (<code>~&gt;</code>)
+								</li>
+								<li>
+									subscribe (<code>&lt;~</code>)
+								</li>
+							</ul>
+						</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Resource Referencens</h2>
+						<p>Point to existing Puppet resource</p>
+						<pre><code contenteditable class="ruby">
+file { 'static':
+	ensure	=> present,
+	path	=> '/tmp/static.txt',
+	content	=> 'Puppet FTW',
+}		</code></pre>
+						<p>corresponding reference</p>
+						<pre><code contenteditable class="ruby">
+File['static']
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Multi reference</h2>
+						<p>Specify a comma separated list as title</p>
+						<pre><code contenteditable class="ruby">
+service { 'httpd':
+	ensure    => running,
+	subscribe => File['vhost1', 'vhost2', 'vhost3'],
+}					</code></pre>
+					</section>
+
+					<section>
+						<h2>Setting defaults</h2>
+						<p>Reference syntax can be used to set defaults</p>
+						<p>Combine resource reference with attribute block</p>
+						<pre><code contenteditable class="ruby">
+File['static'] {
+    owner => 'someuser',
+    group => 'somegroup',
+    mode  => '0600',
+}						</code></pre>
+						<p>This even work for all files</p>
+						<pre><code contenteditable class="ruby">
+File {
+    mode  => '0666',
+}						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Installing packages</h2>
+						<p>
+							&gt;30 providers: yum, rpm, apt, msi, apple, ...
+						</p>
+						<p>
+							Puppet will guess provider based on OS, but you can override
+						</p>
+						<pre><code contenteditable class="ruby">
+package { 'my-package':
+  ensure    => present,
+  provider  => 'yum',
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Exercise: Install Apache HTTPD</h2>
+						<pre><code contenteditable class="ruby">
+package { 'httpd':
+  ensure    => present,
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Running Services</h2>
+						<p>
+							Most platforms can run services
+						</p>
+						<p>
+							Specify parameters for
+							<ul>
+								<li>
+									start
+								</li>
+								<li>
+									stop
+								</li>
+								<li>
+									restart
+								</li>
+								<li>
+									status
+								</li>
+								<li>
+									start at boot (enable)
+								</li>
+							</ul>
+						</p>
+					</section>
+					<section>
+						<h2>Exercise: Start Apache and stop IPtables</h2>
+						<pre><code contenteditable class="ruby">
+service { 'httpd':
+  ensure  => running,
+  enable  => true,
+}
+
+service { 'iptables':
+  ensure  => stopped,
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h2>Package/File/Service</h2>
+					<pre><code contenteditable class="ruby">
+Package['httpd'] -> File['example.com.conf'] ~> Service['httpd']
+
+package { 'httpd':
+  ensure    => present,
+}
+file { 'example.com.conf':
+  path      => '/etc/httpd/conf.d/example.com.conf',
+  content   => '<VirtualHost *:80>
+    DocumentRoot /var/www/example.com
+    ServerName example.com
+</VirtualHost>',
+}
+service { 'httpd':
+  ensure    => running,
+  enable    => true,
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<section>
+						<h2>Classes</h2>
+						<p>
+							Class = collection of resources
+						</p>
+						<pre><code contenteditable class="ruby">
+# defining class
+class someclass {
+  Package['foo'] -> File['bar'] ~> Service['baz']
+
+  package { 'foo': }
+  file { 'bar': }
+  service { 'baz': }
+}
+
+# declaring (activating) class
+class { 'someclass': }
+# ... or ...
+include someclass
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>Modules</h2>
+						<p>
+							Classes are not really portable
+						</p>
+						<p>
+							Modules = bundles of classes, libs, files, etc
+						</p>
+						<p>
+							Puppet autoloads modules, ready to include
+						</p>
+					</section>
+					<section style="align: left">
+						<h2>Modules</h2>
+						<p>
+							Basisc module structure
+						</p>
+						<pre><code contenteditable class="no-highlight">
+my_module
+  manifests/
+    init.pp &ndash; Entry point for module; <em>Mandatory!</em>
+    foo.pp &ndash; Second class
+    impl/
+      bar.pp &ndash; Third class
+  files/ &ndash; Contains static files
+  lib/ &ndash; Contains custom facts, resource types, etc
+  templates/ &ndash; Contains dynamic templates
+  tests/ &ndash; Contains examples
+						</code></pre>
+					</section>
+					<section>
+						<h2>my_module/manifests/</h2>
+						<p style="text-align:left;">
+							<code>
+								manifests/init.pp
+							</code>
+							<br />
+							&ndash; Entry point for module
+							<br/>
+							&ndash; Must contain:
+							<code>
+								class my_module{...}
+							</code>
+							<br/>
+							<code>
+								manifests/foo.pp
+							</code>
+							<br />
+							&ndash;
+							<code>
+								class my_module::foo { ... }
+							</code>
+							<br/>
+							<code>
+								manifests/impl/bar.pp
+							</code>
+							<br />
+							&ndash;
+							<code>
+								class my_module::impl::bar { ... }
+							</code>
+						</p>
+					</section>
+					<section>
+						<h2>my_module/files/</h2>
+						<p>
+							Static files: config files, installation binaries, etc
+						</p>
+						<p>
+							&nbsp;
+						</p>
+						<p>
+							Reference them from manifests
+						</p>
+						<pre><code contenteditable class="ruby">
+file { '/etc/my_module/static.conf':
+  source => 'puppet:///modules/my_module/static.conf'
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>my_module/templates/</h2>
+						<p>
+							Dynamically generated files, using variables &amp; facts
+						</p>
+						<p>
+							&nbsp;
+						</p>
+						<p>
+							Evaluate using
+							<code>
+								template()
+							</code>
+							function
+						</p>
+						<pre><code contenteditable class="ruby">
+file { '/etc/my_module/dynamic.conf':
+  content => template("my_module/dynamic.conf.erb")
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Example dynamic.conf.erb</h2>
+						<pre><code contenteditable class="ruby">
+# my_module config
+# this file is managed by puppet
+# manual changes will be overwritten
+hostname = <%= @hostname %>
+listen_address = <%= @ipaddress %>
+listen_port = <%= @port %>
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h2>Exercise: Apache HTTPD module</h2>
+					<ul>
+						<li>
+							Install HTTPD package
+						</li>
+						<li>
+							Create virtual hosts config file
+						</li>
+						<li>
+							Start &amp; enable service
+						</li>
+						<li>
+							Subscribe service to config file
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<section>
+						<h2>Variables</h2>
+						<p>Like facts, but then self-defined</p>
+						<p>Strings, arrays and hashes...</p>
+					</section>
+					<section>
+						<h2>Strings</h2>
+						simple value reference
+						<pre><code contenteditable class="ruby">
+# defining strings
+$var1 = "kitten"
+$var2 = "small"
+
+# using strings
+package{ $var1:
+    ensure => present,
+    name   => $var1,
+}
+
+# stringing strings together
+notify{ "${var2}${var1}": }
+						</code></pre>
+					</section>
+					<section>
+						<h2>Arrays</h2>
+						unstructured list of values
+						<pre><code contenteditable class="ruby">
+# defining an array
+$packagesArray = ['httpd', 'unzip', 'tomcat']
+
+# appending to an array
+$packagesArray += ['ruby']
+
+# using the array
+package{ $packagesArray:
+    ensure => present,
+}
+
+# and again
+file { '/some/file':
+	require => Package[$packagesArray]
+}
+					</code></pre>
+					</section>
+
+					<section>
+						<h2>Hashes</h2>
+						datastructure of key value pairs
+						<pre><code contenteditable class="ruby">
+# defining a hash
+$hash1 = { key1 => 'val1', key2 => 'val2' }
+
+# nesting hashes in hashes in hashes in ...
+$hash2 = { key1 => 'value1',
+           key2 => {key2_1 => 'val2_1'}
+           key3 => {key3_1 => 'val3_1',
+                    key3_2 => 'val3_2'}
+}
+
+# accessing the hash
+notice( $hash1[key1] )
+
+# accessing a hash in a hash
+notice( $hash2[key3][key3_2] )
+
+					</code></pre>
+					</section>
+					<section>
+						<h2>Variable Scoping</h2>
+						<pre><code contenteditable class="ruby"=>
+$test = 'top'
+class myclass {
+    # dynamic lookup of ${test}, deprecated since 2.7
+    exec { "/bin/echo ${test}": logoutput => true }
+}
+
+class other {
+    $test = 'other'
+    include myclass
+}
+
+include other
+					</code></pre>
+					</section>
+
+					<section>
+						<h2>Qualified variables</h2>
+						<p>classname::variable</p>
+						<pre><code contenteditable class="ruby">
+class myclass {
+    # set a variable
+    $myVar = "test1"
+    exec {"/bin/echo ${myvar}": logoutput => true }
+}
+
+class yourclass {
+    require myclass
+    # access the variable from myclass
+    $yourVar = $myclass::myVar
+}
+						</code> </pre>
+					</section>
+
+					<section><h2>Variable Limitations</h2>
+						<p>A variable can only be set once per scope. And cannot be overwritten, only added to.</p>
+						<pre><code contenteditable class="ruby">
+# set it once
+$string = "foo"
+
+# then this will result in an error
+$string = "foobar"
+
+# adding strings
+$string += "bar"
+						</code></pre>
+					</section>
+
+					<section><h2>Variable Limitations</h2>
+						<p>Parse-order dependent</p>
+						<p>Variables have te be declared before use</p>
+						<pre><code contenteditable class="ruby">
+$filename = '/tmp/my-file'
+file { $filename:
+    content => $content,
+}
+$content = 'This will not work'
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Conditional expresions</h2>
+
+						<ul>
+							<li>if statements</li>
+							<li>case statements</li>
+							<li>selectors</li>
+						</ul>
+					</section>
+					<section>
+						<h2>if .. elseif .. else</h2>
+						<pre><code contenteditable class="ruby">
+if $osfamily == "RedHat" {
+    package{ 'httpd':
+        ensure => present,
+    }
+}
+elseif $operatingsystem == "Ubuntu" {
+    package{ 'apache2':
+        ensure => present,
+    }
+}
+else {
+	fail('Unsupported OS')
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Conditions</h2>
+						<pre><code contenteditable class="ruby">
+# value
+if $string == "value" {}
+
+# functions
+if defined(Package['apache']) {}
+
+# regexp
+if $operatingsystem =~ /(Debian|Ubuntu)$/ {}
+
+# with and/or
+if $string == "value"
+    and defined(Package['apache'])
+    or $somestring =~ /someregexp/ {}
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Case</h2>
+						<pre><code contenteditable class="ruby">
+# $operatingsystem is provided by facter
+case $operatingsystem {
+    #single value
+    'Solaris'           : { package{'apache': ensure => present}}
+
+    #multiple values
+    'redhat', 'centos'  : { package{'apache2': ensure => present}}
+
+    # ruby regexp
+    /^(Debian|Ubuntu)$/ : { package{'httpd': ensure => present}}
+
+    # default value
+    default             : { fail('Unsupported OS') }
+}
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>selectors</h2>
+						<pre><code contenteditable class="ruby">
+# simple selector statement
+$webserverPackage = $osfamily ? {
+    'RedHat' => 'httpd',
+    'Debian' => 'apache',
+    default  => 'httpd',
+}
+
+# and an inline version
+file{ 'logfile':
+    path => $operatingsystem ? {
+        'Redhat'           => "/var/tmp/log.txt",
+        /(Darwin|FreeBSD)/ => "/var/log/log.txt",
+        default            => "/var/adm/log.txt",
+    },
+    ensure => present
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Functions</h2>
+						<p>Pieces of code that run during compilation</p>
+					</section>
+					<section>
+						<h2>Function syntax</h2>
+						For instance ...
+						<pre><code contenteditable>
+file {'/etc/ntp.conf':
+    ensure  => file,
+    content => template('ntp/ntp.conf'),
+}
+
+include apache2
+
+if str2bool($is_virtual) {
+    include ntp::disabled
+}
+else {
+    include ntp
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Functions types</h2>
+						<ul>
+							<li>Statements</li>
+							<li>Rvalue</li>
+						</ul>
+					</section>
+					<section>
+						<h2>Statement Functions</h2>
+						<p>Do not return a value</p>
+						<pre><code contenteditable class="ruby">
+# send stuff to logging stream ...
+notice("everything went ok")
+warn("we want to warn you")
+err("there is an error sir")
+debug("at one time you thought this message was a good idea")
+
+# or fail alltogether
+fail("something went horribly wrong... Have a nice day!!!")
+# and yess this wil cause the puppet run to actually fail
+						</code></pre>
+					</section>
+					<section>
+						<h2>Rvalue Functions</h2>
+						<p>Functions that Return a value</p>
+						<pre><code contenteditable class="ruby">
+# get a value from Hiera
+$val = hiera("someValueName")
+
+# split a string into an array
+$array = split($val, ':')
+						</code></pre>
+					</section>
+					<section>
+						<h2>More on functions</h2>
+						<p>A complete list of default functions can be found at<br/>
+						<a href="http://docs.puppetlabs.com/references/latest/function.html">http://docs.puppetlabs.com/references/latest/function.html</a><br/>
+						And you can always write your own ;-)</p>
+					</section>
+				</section>
+
+				<section>
+					<h2>Exercise: Adapt Apache module</h2>
+					<ul>
+						<li>Use variable for domain name in vhost</li>
+						<li>Add support for Debian-based systems (hint: package is called apache2)</li>
+						<li>Fail in case of unsupported OS</li>
+					</ul>
+				</section>
+
+				<section>
+					<section>
+						<h2>Classes</h2>
+						A collection of resources that can be called or included as a whole. 
+					</section>
+					<section>
+						<h3>Example</h3>
+						<pre><code contenteditable class="ruby">
+# defining class
+class someclass {
+  Package['foo'] -> File['bar'] ~> Service['baz']
+
+  package { 'foo': }
+  file { 'bar': }
+  service { 'baz': }
+}
+
+# declaring (activating) class
+class { 'someclass': }
+# ... or ...
+include someclass
+						</code></pre>
+					</section>
+					<section>
+						<h2>Parameterized classes</h2>
+						<p>A collection of resources that can change it's behaviour according to parameters specified during its invocation call</p>
+					</section>
+					<section>
+						<h2>creating a parameterized class</h2>
+						<pre><code contenteditable class="ruby">
+# defining class
+class java (
+    $role    = 'server',
+    $version = '1.6.0' ) {
+
+    case $role {
+        'server': { package{"java-${version}-jdk": ensure => latest }
+        'client': { package{"java-${version}-jre": ensure => latest }
+        default : { fail('Unsupported role') }
+    }
+}
+
+						</code></pre>
+					</section>
+					<section>
+						<h2>calling a parameterized class</h2>
+						<pre><code contenteditable class="ruby">
+class{ 'java':
+    version => '1.7.0',
+    role    => 'client',
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Class parameters</h2>
+						<p>Can have default values</p>
+						<h4>$parameter = "default value"</h4>
+						<p>The value can be overridden, if not the default is used</p>
+					</section>
+					<section>
+						<h2>With default values</h2>
+						<pre><code contenteditable class="ruby">
+class java (
+    $role    = 'server',
+    $version = '1.6.0' ) {
+
+    ...
+}
+
+class{ 'java':
+    java_version => "1.7.0",
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Class parameters</h2>
+						<p>Without default value</p>
+						<h4>$parameter</h4> 
+						<p>The value of the parameter must be specified at invocation time.
+						Or horrible things will happen!!</p>
+					</section>
+					<section>
+						<h2>Without defaults</h2>
+						<pre><code contenteditable class="ruby">
+class java (
+    $role
+    $version = '1.6.0' ) {
+
+    ...
+}
+
+#this will fail
+class{ 'java':
+    java_version => "1.7.0",
+}
+
+#this won't
+class{ 'java':
+    role => server
+}
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Exercise: Parameterize Apache module</h2>
+						<p>Lets add some parameters to our apache module:</p>
+						<ul>
+							<li>Listen port</li>
+							<li>Document root</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Defined Types</h2>
+					</section>
+
+					<section>
+						<h2>What?</h2>
+						<p>A way to group basic resources into one super-resource!</p>
+						<p>And can be used as any other resource</p>
+					</section>
+
+					<section>
+						<h2>Why?</h2>
+						<p>Isn't this what classes are for?</p>
+						<p class="fragment">Classes can only be called/included once</p>
+						<pre class="fragment"><code contenteditable class="ruby">
+#first call will succeed 
+class{ 'java': version => '1.7.0' }
+
+#the second will throw a duplicate resource error
+class{ 'java': role => 'server' }
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Defined Types</h2>
+						<pre><code contenteditable class="ruby">
+define tomcat::instance (
+    $basedir    = "/opt/instance/${name}",
+    $source_dir = "/opt/tomcat",
+    $port       = "9081" ) {
+
+    file {"${basedir}/tomcat.conf":
+        source => "puppet:///modules/tomcat/config.file"
+    }
+}
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Calling it!</h2>
+						<pre><code contenteditable class="ruby">
+tomcat::instance{"test1": }
+tomcat::instance{"test2": }
+						</code></pre>
+					</section>
+					<section>
+						<h2>Restrictions</h2>
+						<ul>
+							<li>Can't be included: it needs a name</li>
+							<li>Name must be unique</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Exercise: Create vhost defined type</h2>
+						<pre><code contenteditable class="ruby">
+define apache::vhost (
+    $port = '80',
+    $docroot = '/var/www/html',
+    $servername = $title) {
+
+    ...
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>So far we've used standalone puppet ...</h2>
+						<sub>How do I use that in production?</sub>
+					</section>
+					<section>
+						<h1>Puppet Master 101</h1>
+						<p>Let's intruduce a master for our puppets</p>
+					</section>
+					<section>
+						<h2>Centralized configuration</h2>
+						<div style="text-align: left;">
+							<p>All node configuration from a single entity</p>
+							<ul>
+								<li>Holds manifestes and modules</li>
+								<li>Serves files</li>
+							</ul>
+							<p>Classifies nodes</p>
+							<ul>
+								<li>node definitions in site.pp</li>
+								<li>Optional: External Node Classifier</li>
+							</ul>
+						</div>
+					</section>
+					<section>
+						<h2>Pull based interaction</h2>
+						<p>Puppet master defines, Agent applies</p>
+					</section>
+					<section>
+						<h2>Centralized reporting</h2>
+						<p>Stores results of puppet runs</p>
+						<img src="images/dashboard.png" />
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h1>So how does this master work?</h1>
+					</section>
+					<section>
+						<h2>Puppet standalone workflow</h2>
+						<img src="images/manifest_to_defined_state_unified.png" />
+					</section>
+					<section>
+						<h2>Puppet master/agent workflow</h2>
+						<img src="images/manifest_to_defined_state_split.png" style="max-height: 80%" />
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Puppet Enterprise</h2>
+						<p>Based on open source, with some additions</p>
+						<ul>
+							<li>Pre-configured components<br />(puppet, hiera, mcollective, etc)</li>
+							<li>Pre-packaged dependencies</li>
+							<li>Graphical User Interface (dashboard)</li>
+							<li>Support</li>
+						</ul>
+					</section>
+					<section>
+						<h2>Dashboard Demo</h2>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Exercise:<br/>Classify new node</h2>
+						<ol>
+							<li>
+								Modify <code>Vagrantfile</code><br/>
+								<ul>
+									<li>Uncomment <code>### Commented for later use ###</code> blocks</li>
+									<li>Comment <code>agent.vm.provision :puppet do |puppet|</code> block </li>
+								</ul>
+							</li>
+							<li>Bring up master: <code>vagrant up master</code></li>
+							<li>Provision agent: <code>vagrant provision agent</code></li>
+							<li>
+								Go to dashboard: <a href="https://192.168.111.111">https://192.168.111.111</a>
+								<small>Login with username: "puppet@example.com", password: "puppet@example.com"</small>
+							</li>
+							<li>Add <code>example</code> class</li>
+							<li>Classify agent node with new class</li>
+						</ol>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Master / Agent communication</h2>
+						<p>Two-way SSL based</p>
+						<p>Agent will generate CSR on first run</p>
+						<p>Master is CA, and signs agent request</p>
+					</section>
+
+					<section>
+						<h2>puppet cert</h2>
+						<pre><code contenteditable class="bash">
+[root@puppet ~]$ puppet cert list --list --all
++ "agent"
+                (3C:DB:61:D8:C4:FD:22:F7:48:63:BE:E0:01:8F:78:62)
++ "pe-internal-broker"
+                (57:8E:73:A6:B8:95:1A:3E:FA:3E:46:05:F5:D3:76:E0)
++ "pe-internal-dashboard"
+                (16:2D:1F:B4:EC:D9:C3:9B:1C:85:87:27:DB:2D:AE:A3)
++ "pe-internal-mcollective-servers"
+                (15:30:6F:BB:F4:60:4D:B6:D9:EF:1F:29:27:C0:28:3C)
++ "pe-internal-peadmin-mcollective-client"
+                (AB:BB:49:9C:D6:80:45:34:E8:80:6F:1E:5F:30:71:3B)
++ "pe-internal-puppet-console-mcollective-client"
+                (43:87:34:CE:29:0F:AC:9E:12:F9:E9:95:47:4C:AA:E3)
++ "puppet"
+                (BA:45:83:F8:FA:0E:9D:51:17:EE:B9:E2:94:9B:BB:E6)
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>puppet cert</h2>
+						<pre><code contenteditable class="bash">
+$ puppet cert --list 
+# list all certificate requests ready to be signed
+
+$ puppet cert sign &lt;agent name&gt;
+# sign a certificate
+
+$ puppet cert --list --all
+# list all active certificates
+
+$ puppet cert revoke &lt;agent name&gt;
+# revoke a agent certificate
+
+$ puppet cert --clean &lt;agent name&gt;
+# remove everything regarding a single agent
+						</code></pre>
+					</section>
+
+					<section>
+						<h2>Certificate signing</h2>
+						<p>Signing can be done trough CLI, dashboard or ...</p>
+						<p>automatically, add to puppet.conf:
+							<pre><code contenteditable class="ini">
+[master]
+autosign = {true|false|/path/to/autosign.conf}
+							</code></pre>
+						</p>
+						<p>Then define which nodes are allowed te be autosigned in autosign.conf:
+							<pre><code contenteditable class="ini">
+my.host.example.com
+*.test.example.com
+*.local
+							</code></pre>
+						</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Exercise: Sign that certificate</h2>
+						<ol>
+							<li>
+								Turn off autosign on master, puppet.conf:
+								<pre><code contenteditable class="bash">$ vagrant ssh master
+$ sudo su -
+$ vi /etc/puppetlabs/puppet/puppet.conf
+
+  [master]
++ autosign = false</code></pre>
+							</li>
+							<li>
+								Throw away agent certificate and start over
+								<pre><code contenteditable class="bash">$ vagrant ssh agent
+$ sudo su -
+$ curl -k -X DELETE -H "Accept: pson" \
+  https://puppet:8140/production/certificate_status/agent.local
+$ rm -rf /etc/puppetlabs/puppet/ssl
+$ puppet agent --test --waitforcert 10</code></pre>
+							</li>
+							<li>Accept 'node request' in dashboard</li>
+						</ol>
+					</section>
+
+					<section>
+						<h2>PS</h2>
+						<p>Don't forget to restore autosign to true</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Installing Puppet</h2>
+						<p>Two flavors:</p>
+						<ul>
+							<li>Open Source Puppet</li>
+							<li>Puppet Enterprise</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Open Source Puppet</h2>
+						<p>Puppet provides repositories (yum, apt)</p>
+						<p>Have to mix and match components yourself: master, agent, dashboard, ruby, hiera, puppetdb, ...</p>
+						<p>Installation guide: <a href="http://docs.puppetlabs.com/guides/installation.html">http://docs.puppetlabs.com/guides/installation.html</a></p>
+					</section>
+					<section>
+						<h2>Puppet Enterprise</h2>
+						<p>All-in-one installer</p>
+						<p>Prepackaged and configured components</p>
+						<small>But it costs some money... (free up to 10 hosts)</small>
+						<p>Installation guide: <a href="http://docs.puppetlabs.com/pe/latest/install_basic.html">http://docs.puppetlabs.com/pe/latest/install_basic.html</a></p>
+					</section>
+					<section>
+						<h2>Supported platforms</h2>
+						<p>Puppet Master runs best on Debian and Enterprise Linux based platforms</p>
+						<p>Puppet Agent runs on (almost) anything</p>
+					</section>
+					<section>
+						<h2>Exercise: Lets add an Ubuntu agent</h2>
+						<p>Add to Vagrantfile</p>
+						<pre><code contenteditable class="ruby">
+  config.vm.define :ubuntu do |ubuntu|
+    ubuntu.vm.hostname = "ubuntu.local"
+    ubuntu.vm.box = "raring32-vanilla"
+    ubuntu.vm.box_url = "https://s3-eu-west-1.amazonaws.com/xebia-vm/vagrant-boxes/precise32-desktop.box"
+
+    ubuntu.vm.network :private_network, ip: "192.168.111.223"
+
+    # ubuntu.vm.provision :puppet_server do |ubuntu_puppet|
+    #   ubuntu_puppet.options = "--test --waitforcert"
+    # end
+  end
+						</code></pre>
+					</section>
+					<section>
+						<h2>Exercise: Install Puppet Agent</h2>
+						<pre><code contenteditable class="bash">
+$ vagrant up ubuntu
+$ vagrant ssh ubuntu
+$ sudo su -
+$ echo "192.168.111.111 puppet" >> /etc/hosts
+$ wget https://s3.amazonaws.com/pe-builds/released/2.8.2/puppet-enterprise-2.8.2-ubuntu-12.04-i386.tar.gz
+$ tar xzf puppet-enterprise-2.8.2-ubuntu-12.04-i386.tar.gz
+$ ./puppet-enterprise-2.8.2-ubuntu-12.04-i386/puppet-enterprise-installer
+
+... and follow instructions :-)
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h1>Hiera</h1>
+					</section>
+					<section>
+						<h2>Short for hierarchy</h2>
+						<p>Hierarchic configuration store</p>
+						<p>Based on (facter) facts</p>
+						<p>Keep site-specific data out of manifests</p>
+						<p>Avoid repetition</p>
+					</section>
+					<section>
+						<h2>With Hiera you can:</h2>
+						<ul>
+							<li>Write common data for most nodes</li>
+							<li>Override some values for machines located at a particular facility</li>
+							<li>And override some of those values for one or two unique nodes</li>
+						</ul>
+					</section>
+					<section>
+						<h2>hiera.yaml</h2>
+						<pre><code contenteditable class="yaml">---
+:backends:
+ - yaml
+:hierarcy:
+ - %{::clientcert}
+ - %{::environment}
+ - common
+:yaml:
+ :datadir: /path/to/data</code></pre>
+					</section>
+					<section>
+						<h2>hiera data</h2>
+						/path/to/data/agent.example.com.yaml
+						<pre><code contenteditable class="yaml">---
+password: secret
+monitoring_host: 192.168.0.2
+loadbalancer: 10.26.0.2</code></pre>
+						/path/to/data/staging.yaml
+						<pre><code contenteditable class="yaml">---
+loadbalancer: 10.26.0.1</code></pre>
+						/path/to/data/common.yaml
+						<pre><code contenteditable class="yaml">---
+monitoring_host: 192.168.0.1</code></pre>
+					</section>
+					<section>
+						<h2>Hiera flow</h2>
+						<img src="images/hiera.png" />
+					</section>
+					<section>
+						<h2>Uh, Hiera and Puppet?</h2>
+						<p>
+							Puppet uses functions to lookup hiera data:<br />
+							<code>hiera()</code>, <code>hiera_array()</code>, <code>hiera_hash()</code>
+						</p>
+						<pre><code contenteditable class="ruby">
+$password = hiera('password', 'default_password')
+
+user { 'bob':
+  ensure   => present,
+  password => $password,
+}
+						</code></pre>
+						<p>Puppet passes all variables to Hiera at lookup, uses these to traverse hierarchy</p>
+					</section>
+					<section>
+						<h2>Puppet 3</h2>
+						<p>Automatic Parameter Lookup</p>
+						<pre><code contenteditable class="ruby"># In this example, $content's value gets set 
+# when `myclass` is eventually declared.
+
+class myclass ($content = "default text") {
+  file {'/tmp/foo':
+    ensure  => file,
+    content => $content,
+  }
+}</code></pre>
+					</section>
+
+					<section>
+						<h2>Exercise: Use Hiera</h2>
+						<ol>
+							<li>Configure some data in local <code>hieradata</code> folder
+								<pre><code contenteditable class="no-highlight">hieradata/
+|--agent.yaml
+|--production.yaml
+`--common.yaml</code></pre>
+							</li>
+							<li>Create manifest that uses hiera data<br />
+								<pre><code contenteditable class="ruby">
+file { hiera('filename', '/tmp/defaultfile'):
+  content => hiera('filecontent'),
+}
+								</code></pre>
+							</li>
+						</ol>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Something new: PuppetDB</h2>
+						<p>Alternative data store</p>
+						<p>Built for performance</p>
+						<p>Enables exported resources</p>
+						<p>Inventory Service</p>
+					</section>
+					<section>
+						<h2>PuppetDB Demo</h2>
+						<p>Some fancy statistics:<br /><a href="http://192.168.111.111:8080">http://192.168.111.111:8080</a></p>
+						<p>Node status:</p>
+						<pre><code contenteditable class="bash">$ puppet node status agent</code></pre>
+						<p>Node facts:</p>
+						<pre><code contenteditable class="bash">$ curl -k -H "Accept: yaml" https://192.168.111.111:8140/production/facts/agent</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Exported resources</h2>
+						<p>Export resources from one host to another</p>
+						<p>Enable with configuration flag in puppet.conf:</p>
+						<pre><code contenteditable class="ini">[master]
+storeconfigs = true</code></pre>
+					</section>
+					<section>
+						<h2>syntax</h2>
+						<p>Uses special resource notation: <code>@@</code> and <code>&lt;&lt;||&gt;&gt;</code></p>
+						<pre><code contenteditable class="ruby"># export resource on one node
+node a {
+  @@file { "/tmp/foo": content => "fjskfjs\n", tag => "foofile", }
+}
+
+# import on another
+node b {
+  File <<| tag == 'foofile' |>>
+}						</code></pre>
+					</section>
+
+					<section>
+						<h2>Exercise: Export some resources</h2>
+						<ol>
+							<li>Add another VM to Vagrant file<br />
+								<small>
+									Duplicate "<code>config.vm.define :agent do |agent|</code>" block,<br />
+									and change "agent" (host)name, and ip address
+								</small>
+							</li>
+							<li>Add exported resource to manifests/site.pp</li>
+						</ol>
+					</section>
+				</section>
+
+				<section>
+					<h1>Thanks!</h1>
+					<p>
+						<small><a href="https://github.com/xebia/puppet-introduction">https://github.com/xebia/puppet-introduction</a></small>
+					</p>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+center: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]
+});
+
+		</script>
+
+	</body>
+</html>

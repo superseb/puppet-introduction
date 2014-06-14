@@ -1,8 +1,10 @@
 filebucket { 'main':
-    server => 'puppet',
+    server => 'master',
     path   => false,
 }
 File { backup => 'main' }
+
+node default {}
 
 node agent {
 	notify { 'Greeting':

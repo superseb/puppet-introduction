@@ -19,11 +19,12 @@ roles:
       - {type: shell, inline: '/bin/cp -rp /vagrant/masterconfigfiles/root_profile /root/.profile; chmod 770 /root/.profile'}
       #- {type: shell, inline: '/bin/cp -rp /vagrant/masterconfigfiles/yum.conf /etc/yum.conf; chmod 770 /etc/yum.conf'}
       - {type: pe_bootstrap, role: !ruby/sym master, relocate_manifests: !ruby/sym true}
-      - {type: shell, inline: 'sed -i "s/host.*/    host = 0\.0\.0\.0/" /etc/puppetlabs/puppetdb/conf.d/jetty.ini'}
       - {type: shell, inline: '/bin/cp -rp /vagrant/masterconfigfiles/fileserver.conf /etc/puppetlabs/puppet/fileserver.conf;chown 655 /etc/puppetlabs/puppet/fileserver.conf'}
       - {type: shell, inline: '/bin/cp -rp /vagrant/masterconfigfiles/hiera.yaml /etc/puppetlabs/puppet/hiera.yaml;chown 655 /etc/puppetlabs/puppet/hiera.yaml'}
       - {type: shell, inline: 'sed -i "s|.*modulepath.*|    modulepath=\$confdir/environments/\$environment/modules:/modules:/opt/puppet/share/puppet/modules|" /etc/puppetlabs/puppet/puppet.conf'}
-      - {type: shell, inline: 'service pe-httpd restart;service pe-puppetdb restart'}
+      - {type: shell, inline: 'service pe-httpd restart;'}
+      #- {type: shell, inline: 'sed -i "s/host = .*/host = 0\.0\.0\.0/" /etc/puppetlabs/puppetdb/conf.d/jetty.ini'}
+      #- {type: shell, inline: 'service pe-puppetdb restart'}
   pe-puppet-agent:
     private_networks:
       - {ip: '0.0.0.0', auto_network: true}
@@ -41,4 +42,5 @@ roles:
       - {type: shell, inline: '/bin/ln -fs /opt/puppet/bin/puppet /usr/bin'}
       - {type: shell, inline: '/bin/mkdir -p /etc/puppetlabs/facter/facts.d'}
       - {type: shell, inline: 'if [[ -f /vagrant/facts.d/`hostname -s`.yaml ]] ; then /bin/ln -fs /vagrant/facts.d/`hostname -s`.yaml /etc/puppetlabs/facter/facts.d ; fi'}
-      - {type: puppet, manifests_path: manifests, module_path: modules, manifest_file: standalone.pp}
+      #- {type: puppet, manifests_path: manifests, module_path: modules, manifest_file: standalone.pp}
+      - {type: puppet_server, options: '--test --waitforcert 10 --server master'}

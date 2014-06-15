@@ -15,7 +15,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 		<link rel="stylesheet" href="css/reveal.min.css">
-		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+		<link rel="stylesheet" href="css/theme/xebia.css" id="theme">
 
 		<!-- For syntax highlighting -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -31,6 +31,7 @@
 	</head>
 
 	<body>
+		<div class="head"></div>
 
 		<div class="reveal">
 
@@ -466,7 +467,6 @@ service { 'iptables':
 					</section>
 					<section>
 						<h2>Exercise: Ordering</h2>
-						<p>results (scroll down)</p>
 						<pre><code contenteditable class="ruby">package { 'httpd':
   ensure => latest
   before => File['/etc/httpd/conf.d/default.conf'],
@@ -1658,6 +1658,8 @@ controls: true,
 progress: true,
 history: true,
 center: true,
+width: 1200,
+height: 1000,
 
 theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
 transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none

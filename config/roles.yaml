@@ -42,5 +42,5 @@ roles:
       - {type: shell, inline: '/bin/ln -fs /opt/puppet/bin/puppet /usr/bin'}
       - {type: shell, inline: '/bin/mkdir -p /etc/puppetlabs/facter/facts.d'}
       - {type: shell, inline: 'if [[ -f /vagrant/facts.d/`hostname -s`.yaml ]] ; then /bin/ln -fs /vagrant/facts.d/`hostname -s`.yaml /etc/puppetlabs/facter/facts.d ; fi'}
-      #- {type: puppet, manifests_path: manifests, module_path: modules, manifest_file: standalone.pp}
-      - {type: puppet_server, options: '--test --waitforcert 10 --server master'}
+      - {type: puppet, manifests_path: manifests, module_path: modules, manifest_file: standalone.pp}
+      #- {type: puppet_server, options: '--test --waitforcert 10 --server master'}

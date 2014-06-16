@@ -1601,10 +1601,9 @@ node b {
 					<section>
 						<h2>Exercise: Export some resources</h2>
 						<ol>
-							<li>Add another VM to Vagrant file<br />
+							<li>Add another VM to Vagrant env<br />
 								<small>
-									Duplicate "<code>config.vm.define :agent do |agent|</code>" block,<br />
-									and change "agent" (host)name, and ip address
+									Add a vm to config/vms.yaml (or reuse previously created ubuntu vm).
 								</small>
 							</li>
 							<li>Add exported resource to manifests/site.pp</li>

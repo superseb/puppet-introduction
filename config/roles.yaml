@@ -44,3 +44,13 @@ roles:
       - {type: shell, inline: 'if [[ -f /vagrant/facts.d/`hostname -s`.yaml ]] ; then /bin/ln -fs /vagrant/facts.d/`hostname -s`.yaml /etc/puppetlabs/facter/facts.d ; fi'}
       - {type: puppet, manifests_path: manifests, module_path: modules, manifest_file: standalone.pp}
       #- {type: puppet_server, puppet_server: master, options: '--test'}
+  network-only:
+    private_networks:
+      - {ip: '0.0.0.0', auto_network: true}
+    provider:
+      type: virtualbox
+      customize:
+        - [modifyvm, !ruby/sym id, '--natdnshostresolver1', 'on']
+        - [modifyvm, !ruby/sym id, '--natdnsproxy1', 'on']
+    provisioners:
+      - {type: hosts}

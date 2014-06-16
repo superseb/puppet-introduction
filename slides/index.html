@@ -1314,8 +1314,8 @@ listen_port = <%= @port %>
 							<li>Bring up master: <code>vagrant up master</code></li>
 							<li>Provision agent: <code>vagrant provision agent</code></li>
 							<li>
-								Go to dashboard: <a href="https://192.168.111.111">https://192.168.111.111</a>
-								<small>Login with username: "puppet@example.com", password: "puppet@example.com"</small>
+								Go to dashboard: <a href="https://10.20.1.2">https://10.20.1.2</a>
+								<small>Login with username: "admin@puppetlabs.com", password: "puppetlabs"</small>
 							</li>
 							<li>Add <code>example</code> class</li>
 							<li>Classify agent node with new class</li>
@@ -1453,19 +1453,13 @@ $ puppet agent --test --waitforcert 10</code></pre>
 					</section>
 					<section>
 						<h2>Exercise: Lets add an Ubuntu agent</h2>
-						<p>Add to Vagrantfile</p>
+						<p>Add to config/vms.yaml</p>
 						<pre><code contenteditable class="ruby">
-  config.vm.define :ubuntu do |ubuntu|
-    ubuntu.vm.hostname = "ubuntu.local"
-    ubuntu.vm.box = "raring32-vanilla"
-    ubuntu.vm.box_url = "https://s3-eu-west-1.amazonaws.com/xebia-vm/vagrant-boxes/precise32-desktop.box"
-
-    ubuntu.vm.network :private_network, ip: "192.168.111.223"
-
-    # ubuntu.vm.provision :puppet_server do |ubuntu_puppet|
-    #   ubuntu_puppet.options = "--test --waitforcert"
-    # end
-  end
+- name: ubuntu
+  hostname: ubuntu.local
+  box: ubuntu-server-12042-x64-vbox4210-nocm
+  roles:
+  - network-only
 						</code></pre>
 					</section>
 					<section>
@@ -1474,10 +1468,9 @@ $ puppet agent --test --waitforcert 10</code></pre>
 $ vagrant up ubuntu
 $ vagrant ssh ubuntu
 $ sudo su -
-$ echo "192.168.111.111 puppet" >> /etc/hosts
-$ wget https://s3.amazonaws.com/pe-builds/released/2.8.2/puppet-enterprise-2.8.2-ubuntu-12.04-i386.tar.gz
-$ tar xzf puppet-enterprise-2.8.2-ubuntu-12.04-i386.tar.gz
-$ ./puppet-enterprise-2.8.2-ubuntu-12.04-i386/puppet-enterprise-installer
+$ wget https://s3.amazonaws.com/pe-builds/released/3.2.3/puppet-enterprise-3.2.3-ubuntu-12.04-amd64.tar.gz
+$ tar xzf puppet-enterprise-3.2.3-ubuntu-12.04-amd64.tar.gz
+$ ./puppet-enterprise-3.2.3-ubuntu-12.04-amd64/puppet-enterprise-installer
 
 ... and follow instructions :-)
 						</code></pre>
@@ -1580,24 +1573,6 @@ file { hiera('filename', '/tmp/defaultfile'):
 								</code></pre>
 							</li>
 						</ol>
-					</section>
-				</section>
-
-				<section>
-					<section>
-						<h2>Something new: PuppetDB</h2>
-						<p>Alternative data store</p>
-						<p>Built for performance</p>
-						<p>Enables exported resources</p>
-						<p>Inventory Service</p>
-					</section>
-					<section>
-						<h2>PuppetDB Demo</h2>
-						<p>Some fancy statistics:<br /><a href="http://192.168.111.111:8080">http://192.168.111.111:8080</a></p>
-						<p>Node status:</p>
-						<pre><code contenteditable class="bash">$ puppet node status agent</code></pre>
-						<p>Node facts:</p>
-						<pre><code contenteditable class="bash">$ curl -k -H "Accept: yaml" https://192.168.111.111:8140/production/facts/agent</code></pre>
 					</section>
 				</section>
 

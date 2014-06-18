@@ -1197,40 +1197,72 @@ listen_address = <%= @ipaddress %>
 listen_port = <%= @port %>
 						</code></pre>
 					</section>
+					<section>
+						<h2>Pattern: Common layout</h2>
+						<pre><code contenteditable class="no-highlight">
+my_module
+  manifests/
+    init.pp &mdash; Entry point for module
+    params.pp &mdash; Default parameters for this module
+    install.pp &mdash; Installation
+    install/redhat.pp &mdash; (optional) Redhat specific install
+    config.pp &mdash; Generic configuration
+    service.pp &mdash; Start the service (if necessary)
+    some_defined_type.pp &mdash; Some defined type
+  files/ &mdash; Contains static files
+  templates/ &mdash; Contains dynamic templates
+						</code></pre>
+					</section>
+					<section>
+						<h2>Example init.pp</h2>
+						<pre><code contenteditable class="ruby">
+class deployit (
+  $version,
+  $base_dir                 = $deployit::params::base_dir,
+  $tmp_dir                  = $deployit::params::tmp_dir,
+  $os_user                  = $deployit::params::os_user,
+  $os_group                 = $deployit::params::os_group,
+  $http_bind_address        = $deployit::params::http_bind_address,
+  $http_port                = $deployit::params::http_port,
+  $admin_password           = $deployit::params::admin_password,
+  $jcr_repository_path      = $deployit::params::jcr_repository_path,
+  $importable_packages_path = $deployit::params::importable_packages_path,
+) inherits deployit::params {
+
+  # Variables
+
+  anchor { 'deployit::begin': }
+    -> class { 'deployit::install': }
+    -> class { 'deployit::config': }
+    ~> class { 'deployit::service': }
+    -> anchor { 'deployit::end': }
+}
+						</code></pre>
+					</section>
+					<section>
+						<h2>Anchor pattern</h2>
+						<p>Resources are automatically contained by the classes they are part of</p>
+						<p>However, classes are <em>not</em> automatically contained when used by other classes</p>
+						<p>Modules typically have classes that call other classes...</p>
+					</section>
+					<section>
+						<h2>Anchoring a.k.a. containment</h2>
+						<p>Anchor pattern necessary until Puppet 3.4 (or Puppet Enterprise 3.2)</p>
+						<p>New keyword available: <code>contain</code></p>
+						<p><small><a href="http://docs.puppetlabs.com/puppet/latest/reference/lang_containment.html">http://docs.puppetlabs.com/puppet/latest/reference/lang_containment.html</a></small></p>
+					</section>
 				</section>
 
 				<section>
 					<section>
 						<h2>Exercise: Apache HTTPD module</h2>
+						<p>Convert previously created apache resources into module:</p>
 						<ul>
-							<li>
-								Install HTTPD package
-							</li>
-							<li>
-								Create virtual hosts config file
-							</li>
-							<li>
-								Start &amp; enable service
-							</li>
-							<li>
-								Subscribe service to config file
-							</li>
-						</ul>
-					</section>
-					<section>
-						<h2>Exercise: Adapt Apache module</h2>
-						<ul>
-							<li>Use variable for domain name in vhost</li>
-							<li>Add support for Debian-based systems (hint: package is called apache2)</li>
-							<li>Fail in case of unsupported OS</li>
-						</ul>
-					</section>
-					<section>
-						<h2>Exercise: Parameterize Apache module</h2>
-						<p>Lets add some parameters to our apache module:</p>
-						<ul>
-							<li>Listen port</li>
-							<li>Document root</li>
+							<li>Entry point &mdash; <code>apache (init.pp)</code>
+							<li>Class for installation &mdash; <code>apache::install</code></li>
+							<li>Class for generic configuration &mdash; <code>apache::config</code></li>
+							<li>Class for service &mdash; <code>apache::service</code></li>
+							<li>Defined type for vhost &mdash; <code>apache::vhost</code></li>
 						</ul>
 					</section>
 				</section>
@@ -1305,16 +1337,7 @@ listen_port = <%= @port %>
 						<h2>Exercise:<br/>Classify new node</h2>
 						<ol>
 							<li>
-								Modify <code>Vagrantfile</code><br/>
-								<ul>
-									<li>Uncomment <code>### Commented for later use ###</code> blocks</li>
-									<li>Comment <code>agent.vm.provision :puppet do |puppet|</code> block </li>
-								</ul>
-							</li>
-							<li>Bring up master: <code>vagrant up master</code></li>
-							<li>Provision agent: <code>vagrant provision agent</code></li>
-							<li>
-								Go to dashboard: <a href="https://10.20.1.2">https://10.20.1.2</a>
+								Go to dashboard: <a href="https://10.20.1.2">https://10.20.1.2</a><br />
 								<small>Login with username: "admin@puppetlabs.com", password: "puppetlabs"</small>
 							</li>
 							<li>Add <code>example</code> class</li>
@@ -1406,10 +1429,12 @@ $ vi /etc/puppetlabs/puppet/puppet.conf
 							</li>
 							<li>
 								Throw away agent certificate and start over
-								<pre><code contenteditable class="bash">$ vagrant ssh agent
+								<pre><code contenteditable class="bash">$ vagrant ssh master
 $ sudo su -
-$ curl -k -X DELETE -H "Accept: pson" \
-  https://puppet:8140/production/certificate_status/agent.local
+$ puppet cert clean agent.local
+
+$ vagrant ssh agent
+$ sudo su -
 $ rm -rf /etc/puppetlabs/puppet/ssl
 $ puppet agent --test --waitforcert 10</code></pre>
 							</li>
@@ -1502,7 +1527,7 @@ $ ./puppet-enterprise-3.2.3-ubuntu-12.04-amd64/puppet-enterprise-installer
 :backends:
  - yaml
 :hierarcy:
- - %{::clientcert}
+ - %{::hostname}
  - %{::environment}
  - common
 :yaml:
@@ -1609,6 +1634,29 @@ node b {
 							<li>Add exported resource to manifests/site.pp</li>
 						</ol>
 					</section>
+					<section>
+						<h2>Exercise: Poor man's DNS</h2>
+						<ul>
+							<li>On every node, export it's <a href="http://docs.puppetlabs.com/references/latest/type.html#host"><code>host</code></a><br /><small>Use $hostname, $fqdn, $ipaddress facts</small></li>
+							<li>Next, on every node, import those host resources</li>
+						</ul>
+					</section>
+					<section>
+						<h2>Exercise: Distribute SSH host keys</h2>
+						<ul>
+							<li>On every node, export it's <a href="http://docs.puppetlabs.com/references/latest/type.html#sshkey"><code>sshkey</code></a></li>
+							<li>Next, on every node, import those sshkey resources</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<h2>Exercise: Create a Jetty module</h2>
+					<ol>
+						<li>Add an extra VM</li>
+						<li>Install and run Jetty</li>
+						<li>Use Apache as a reverse proxy</li>
+					</ol>
 				</section>
 
 				<section>

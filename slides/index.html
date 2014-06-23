@@ -510,7 +510,6 @@ file { '/etc/httpd/conf.d/default.conf':
 
 service { 'httpd':
   ensure => running,
-  before => Service['iptables']
 }
 
 service { 'iptables':

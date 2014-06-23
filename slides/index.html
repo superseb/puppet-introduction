@@ -683,14 +683,14 @@ $content = 'This will not work'
 						</ul>
 					</section>
 					<section>
-						<h2>if .. elseif .. else</h2>
+						<h2>if .. elsif .. else</h2>
 						<pre><code contenteditable class="ruby">
 if $osfamily == "RedHat" {
     package{ 'httpd':
         ensure => present,
     }
 }
-elseif $operatingsystem == "Ubuntu" {
+elsif $operatingsystem == "Ubuntu" {
     package{ 'apache2':
         ensure => present,
     }

@@ -1003,7 +1003,7 @@ class apache (
   $service_state => 'running'
 ) {
   case $service_state {
-    'running', 'stopped', 'enabled', 'disables': {}
+    'running', 'stopped', 'enabled', 'disabled': {}
     default : { fail( "incorrect value: ${service_state}" ) }
   }
 

@@ -21,9 +21,19 @@
 		<link rel="stylesheet" href="lib/css/zenburn.css">
 
 		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
-		<script>
+<!--		<script>
 			document.write('<link rel="stylesheet" href="css/print/' + (window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">');
-		</script>
+		</script> -->
+<script>
+  if( window.location.search.match( /print-pdf/gi ) ) {
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'css/print/pdf.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  }
+</script>
+                
 
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
@@ -51,18 +61,27 @@
 					<section>
 						<h2>#Configuration Management</h2>
 					</section>
+                                        <section>
+						<h2>Idempotency</h2>
+                                        </section>
+					<section>
+						<h2>DSL</h2>
+						<p>
+							Domain Specific Language
+						</p>
+					</section>
+					<section>
+						<h2>RAL</h2>
+						<p>
+							Resource Abstraction Layer
+						</p>
+					</section>
 					<section>
 						<h2>Standalone</h2>
 						<p>
 							vs.
 						</p>
 						<h2>Master / Agent</h2>
-					</section>
-					<section>
-						<h2>DSL</h2>
-						<p>
-							Domain Specific Language
-						</p>
 					</section>
 				</section>
 
@@ -97,12 +116,22 @@ resource_type { 'title':
 						</code></pre>
 					</section>
 					<section>
+						<h2>Property vs Parameter</h2>
+						<pre><code contenteditable class="ruby">
+service { 'sshd':
+  ensure   => 'running',
+  enable   => false,
+  provider => 'upstart',
+}
+						</code></pre>
+					</section>
+					<section>
 						<h2>Manifests</h2>
 						<p>
 							site.pp
 						</p>
 						<pre><code contenteditable class="ruby">
-notify { 'Greeting':
+notify { 'greeting':
   message => 'Puppet says hi!',
 }
 						</code></pre>
@@ -110,7 +139,6 @@ notify { 'Greeting':
 							will result in
 						</p>
 						<pre><code contenteditable class="no-highlight">
-Running Puppet with standalone.pp...
 notice: Puppet says hi!
 notice: /Stage[main]//Node[default]/Notify[Greeting]/message:
     defined 'message' as 'Puppet says hi!'
@@ -121,20 +149,11 @@ notice: Finished catalog run in 0.05 seconds
 
 				<section>
 					<section>
-						<h2>Exercise: Using Vagrant</h2>
-						<pre><code contenteditable class="bash">
-$ git clone https://github.com/xebia/puppet-introduction.git
-
-$ vagrant up
-
-$ vagrant provision
-Will run puppet apply site.pp on VirtualBox image
-
-$ vagrant ssh
-						</code></pre>
-						<p>
-							<a href="https://github.com/xebia/puppet-introduction">https://github.com/xebia/puppet-introduction</a>
-						</p>
+						<h2>Exercise: Setup working environment</h2>
+                                                <ul>
+                                                  <li>Import VirtualBox images</li>
+                                                  <li>File -> Preferences -> Network, Add 'host-only' adapter (192.168.0.1/255.255.255.0, DHCP off)</li>
+                                                </ul>
 					</section>
 				</section>
 
@@ -161,13 +180,13 @@ See 'puppet help &lt;subcommand&gt;' for help on a specific subcommand.
 					<section>
 						<h2>Exercise: Puppet CLI</h2>
 						<pre><code contenteditable class="bash">
-$ vagrant ssh
+$ ssh vagrant@192.168.0.10 (password: vagrant)
 
 $ sudo su -
 
 $ puppet describe user
 
-$ puppet resources user root
+$ puppet resource user root
 						</code></pre>
 					</section>
 				</section>
@@ -187,7 +206,7 @@ user { 'username':
 					<section>
 						<h2>Exercise:<br/>Create a static file</h2>
 						<p>
-							manifests/site.pp
+							/etc/puppetlabs/puppet/environments/production/manifests/site.pp
 						</p>
 						<pre><code contenteditable class="ruby">
 file { 'static':
@@ -215,11 +234,10 @@ file { 'static':
 							... and passes them as variables to puppet
 						</p>
 					</section>
-
 					<section>
 						<h2>Exercise:<br />List available facts</h2>
 						<pre><code contenteditable class="ruby">
-$ vagrant ssh
+$ ssh vagrant@192.168.0.10 (password: vagrant)
 
 $ sudo su -
 
@@ -236,6 +254,17 @@ file { 'dynamic':
   content  => "${hostname} ${ipaddress}",
 }
 						</code></pre>
+					</section>
+					<section>
+						<h2>External facts</h2>
+                                                <ul>
+                                                  <li>Executable scripts added in < MODULE >/facts.d</li>
+                                                  <li>Should return the following format</li>
+                                                </ul>
+                                                <pre><code contenteditable class="bash">
+#!/bin/bash
+echo "key1=value1"
+                                                </code></pre>
 					</section>
 				</section>
 
@@ -441,9 +470,9 @@ notify{ 'First': } -> notify {'Second': }
 }
 
 file { '/etc/httpd/conf.d/default.conf':
-  content => template('apache/default.conf.erb'),
-  owner   => 'httpd',
-  group   => 'httpd'
+  content => template('/root/apache/default.conf.erb'),
+  owner   => 'apache',
+  group   => 'apache'
 }
 
 service { 'httpd':
@@ -455,6 +484,19 @@ service { 'iptables':
 }
 						</code></pre>
 					</section>
+                                        <section>
+                                                <h2>default.conf.erb</h2>
+                                                <pre><code contenteditable class="ruby">
+<VirtualHost *:80>
+DocumentRoot /var
+ServerName www.example.com
+
+# Other directives here
+
+</VirtualHost>
+</code></pre>
+
+                                        </section>
 					<section>
 						<h2>Exercise: Ordering</h2>
 						<p>Add some ordering to the apache.pp</p>
@@ -572,9 +614,6 @@ notify{ "${var2}${var1}": }
 # defining an array
 $packagesArray = ['httpd', 'unzip', 'tomcat']
 
-# appending to an array
-$packagesArray += ['ruby']
-
 # using the array
 package{ $packagesArray:
     ensure => present,
@@ -645,31 +684,6 @@ class yourclass {
 						</code> </pre>
 					</section>
 
-					<section><h2>Variable Limitations</h2>
-						<p>A variable can only be set once per scope. And cannot be overwritten, only added to.</p>
-						<pre><code contenteditable class="ruby">
-# set it once
-$string = "foo"
-
-# then this will result in an error
-$string = "foobar"
-
-# adding strings
-$string += "bar"
-						</code></pre>
-					</section>
-
-					<section><h2>Variable Limitations</h2>
-						<p>Parse-order dependent</p>
-						<p>Variables have te be declared before use</p>
-						<pre><code contenteditable class="ruby">
-$filename = '/tmp/my-file'
-file { $filename:
-    content => $content,
-}
-$content = 'This will not work'
-						</code></pre>
-					</section>
 				</section>
 
 				<section>
@@ -894,13 +908,12 @@ include someclass
 						<pre class="fragment"><code contenteditable class="ruby">
 class apache {
   package { 'httpd':
-    ensure => latest,
-    notify => Service['httpd'],
+    ensure => 'latest',
   }
 
   service { 'httpd':
-    ensure => running,
-    after  => Package['httpd'],
+    ensure  => 'running',
+    require => Package['httpd'],
   }
 }
 						</code></pre>
@@ -947,12 +960,11 @@ class apache (
 ) {
   package { 'httpd':
     ensure => latest,
-    notify => Service['httpd']
   }
 
   service { 'httpd':
-    ensure => $service_state,
-    after => Package['httpd']
+    ensure  => $service_state,
+    require => Package['httpd'],
   }
 }
 						</code></pre>
@@ -984,12 +996,11 @@ class apache (
 ) {
   package { 'httpd':
     ensure => latest,
-    notify => Service['httpd']
   }
 
   service { 'httpd':
-    ensure => $service_state,
-    after => Package['httpd']
+    ensure  => $service_state,
+    require => Package['httpd'],
   }
 }
 						</code></pre>
@@ -1297,7 +1308,7 @@ class deployit (
 					<section>
 						<h2>Centralized reporting</h2>
 						<p>Stores results of puppet runs</p>
-						<img src="images/dashboard.png" />
+						<img src="images/pedashboard37.png" />
 					</section>
 				</section>
 
@@ -1336,8 +1347,8 @@ class deployit (
 						<h2>Exercise:<br/>Classify new node</h2>
 						<ol>
 							<li>
-								Go to dashboard: <a href="https://10.20.1.2">https://10.20.1.2</a><br />
-								<small>Login with username: "admin@puppetlabs.com", password: "puppetlabs"</small>
+								Go to dashboard: <a href="https://192.168.0.10">https://192.168.0.10</a><br />
+								<small>Login with username: "admin", password: "puppetadmin"</small>
 							</li>
 							<li>Add <code>example</code> class</li>
 							<li>Classify agent node with new class</li>
@@ -1419,27 +1430,27 @@ my.host.example.com
 						<ol>
 							<li>
 								Turn off autosign on master, puppet.conf:
-								<pre><code contenteditable class="bash">$ vagrant ssh master
+								<pre><code contenteditable class="bash">$ ssh vagrant@192.168.0.10 
 $ sudo su -
 $ vi /etc/puppetlabs/puppet/puppet.conf
 
   [master]
 + autosign = false
 
-$ service pe-httpd restart</code></pre>
+$ service pe-puppetserver restart</code></pre>
 
 
 							</li>
 							<li>
 								Throw away agent certificate and start over
-								<pre><code contenteditable class="bash">$ vagrant ssh master
+								<pre><code contenteditable class="bash">$ ssh vagrant@192.168.0.10
 $ sudo su -
-$ puppet cert clean agent.local
+$ puppet cert clean peagent.local
 
-$ vagrant ssh agent
+$ ssh vagrant@192.168.0.11
 $ sudo su -
 $ rm -rf /etc/puppetlabs/puppet/ssl
-$ puppet agent --test --waitforcert 10</code></pre>
+$ puppet agent --test --waitforcert 10 --server pemaster.local</code></pre>
 							</li>
 							<li>Accept 'node request' in dashboard</li>
 						</ol>
@@ -1478,30 +1489,6 @@ $ puppet agent --test --waitforcert 10</code></pre>
 						<h2>Supported platforms</h2>
 						<p>Puppet Master runs best on Debian and Enterprise Linux based platforms</p>
 						<p>Puppet Agent runs on (almost) anything</p>
-					</section>
-					<section>
-						<h2>Exercise: Lets add an Ubuntu agent</h2>
-						<p>Add to config/vms.yaml</p>
-						<pre><code contenteditable class="ruby">
-- name: ubuntu
-  hostname: ubuntu.local
-  box: ubuntu-server-12042-x64-vbox4210-nocm
-  roles:
-  - network-only
-						</code></pre>
-					</section>
-					<section>
-						<h2>Exercise: Install Puppet Agent</h2>
-						<pre><code contenteditable class="bash">
-$ vagrant up ubuntu
-$ vagrant ssh ubuntu
-$ sudo su -
-$ wget https://s3.amazonaws.com/pe-builds/released/3.2.3/puppet-enterprise-3.2.3-ubuntu-12.04-amd64.tar.gz
-$ tar xzf puppet-enterprise-3.2.3-ubuntu-12.04-amd64.tar.gz
-$ ./puppet-enterprise-3.2.3-ubuntu-12.04-amd64/puppet-enterprise-installer
-
-... and follow instructions :-)
-						</code></pre>
 					</section>
 				</section>
 
@@ -1587,20 +1574,53 @@ class myclass ($content = "default text") {
 					<section>
 						<h2>Exercise: Use Hiera</h2>
 						<ol>
-							<li>Configure some data in local <code>hieradata</code> folder
+                                                        <li>Create hieradata folder
+                                                                <pre><code contenteditable class="no-highlight">
+mkdir /etc/puppetlabs/puppet/hieradata
+                                                                </code></pre>
+                                                        </li>
+                                                        <li>Configure hieradata folder
+                                                                <pre><code contenteditable class="no-highlight">
+Edit /etc/puppetlabs/puppet/hiera.yaml
+  :datadir: /etc/puppetlabs/puppet/hieradata
+                                                                </code></pre>
+                                                        </li>
+							<li>Configure some data in <code>hieradata</code> folder
 								<pre><code contenteditable class="no-highlight">hieradata/
-|--agent.yaml
+|--peagent.local.yaml
+---
+  filecontent: 'peagent content'
 |--production.yaml
-`--common.yaml</code></pre>
+---
+  filecontent: 'production content'
+|--global.yaml
+---
+  filecontent: 'global content'</code></pre>
 							</li>
-							<li>Create manifest that uses hiera data<br />
+                                                        <li>Call hiera on the commandline
+								<pre><code contenteditable class="no-highlight">
+$ hiera -c /etc/puppetlabs/puppet/hiera.yaml filecontent 
+clientcert=peagent.local
+$ hiera -c /etc/puppetlabs/puppet/hiera.yaml filecontent 
+environment=production
+$ hiera -c /etc/puppetlabs/puppet/hiera.yaml filecontent
+                                                                </code></pre>
+                                                        
+                                                        </li> 
+                                                </ol>
+					</section>
+					<section>
+						<h2>Exercise: Use Hiera</h2>
+							Create manifest that uses hiera data<br />
 								<pre><code contenteditable class="ruby">
-file { hiera('filename', '/tmp/defaultfile'):
-  content => hiera('filecontent'),
+class hieratest {
+  $filename = hiera('filename', '/tmp/defaultfile')
+  $filecontent = hiera('filecontent')
+  file { $filename:
+    content => $filecontent,
+  }
 }
 								</code></pre>
-							</li>
-						</ol>
 					</section>
 				</section>
 
@@ -1616,12 +1636,12 @@ storeconfigs = true</code></pre>
 						<h2>syntax</h2>
 						<p>Uses special resource notation: <code>@@</code> and <code>&lt;&lt;||&gt;&gt;</code></p>
 						<pre><code contenteditable class="ruby"># export resource on one node
-node a {
+node 'pemaster.local' {
   @@file { "/tmp/foo": content => "fjskfjs\n", tag => "foofile", }
 }
 
 # import on another
-node b {
+node 'peagent.local' {
   File <<| tag == 'foofile' |>>
 }						</code></pre>
 					</section>
@@ -1629,10 +1649,7 @@ node b {
 					<section>
 						<h2>Exercise: Export some resources</h2>
 						<ol>
-							<li>Add another VM to Vagrant env<br />
-								<small>
-									Add a vm to config/vms.yaml (or reuse previously created ubuntu vm).
-								</small>
+							<li>Use the master to export and the agent to collect resources<br />
 							</li>
 							<li>Add exported resource to manifests/site.pp</li>
 						</ol>
@@ -1653,21 +1670,313 @@ node b {
 					</section>
 				</section>
 
+
+				<section>
+                                        <section>
+					<h2>Exec resource</h2>
+					<ul>
+						<li>The one resource to rule them all</li>
+						<li>Sometimes it is necessary, but try to avoid</li>
+                                                <li>Have to take care of idempotency yourself</li>
+					</ul>
+                                        </section>
+
+                                        <section>
+					<h2>Exec resource</h2>
+                                        <pre><code contenteditable class="ruby">
+exec { '/bin/echo ik ga pakket ntp installeren':
+}
+                                        </code></pre> 
+
+                                        <pre><code contenteditable class="ruby">
+exec { '/bin/echo ik ga pakket ntp installeren':
+  unless => '/bin/rpm -q ntp',
+}
+                                        </code></pre> 
+
+                                        <pre><code contenteditable class="ruby">
+exec { '/bin/echo ik ga pakket ntp installeren':
+  onlyif => '/usr/bin/test ! -f /usr/sbin/ntpd',
+}
+                                        </code></pre> 
+                                        </section>
+
+				</section>
+
 				<section>
 					<h2>Exercise: Create a Jetty module</h2>
 					<ol>
-						<li>Add an extra VM</li>
 						<li>Install and run Jetty</li>
 						<li>Use Apache as a reverse proxy</li>
 					</ol>
 				</section>
 
+                                <section>
+                                        <section>
+                                        <h2>Directory Environments</h2>
+                                        <ul>
+                                          <li>Enabled by default in PE 3.7</li>
+                                          <li>Requires following settings in puppet.conf:</li>
+                                        </ul>
+<pre><code contenteditable class="no-highlight">
+environmentpath = /etc/puppetlabs/puppet/environments
+basemodulepath = /etc/puppetlabs/puppet/modules:/opt/puppet/share/puppet/modules
+</code></pre>
+                                        </section>
+                                        <section>
+                                        <h2>Directory Environments</h2>
+                                        <p>Creating environment</p>
+                                        <ul>
+                                          <li>Create a directory in /etc/puppetlabs/puppet/environments/
+[environmentname]</li>
+                                          <li>Create subdirectories 'manifests' and 'modules'</li>
+                                          <li>Create a 'site.pp' file inside the 'manifests' folder</li>
+                                          <li>Classify a node to environment in Dashboard</li>
+                                        </ul>
+                                        </section>
+                                </section>
 				<section>
-					<h1>Thanks!</h1>
-					<p>
-						<small><a href="https://github.com/xebia/puppet-introduction">https://github.com/xebia/puppet-introduction</a></small>
-					</p>
+                                        <section>
+					<h2>VMware integration</h2>
+                                        <p>Requirements:</p>
+                                        <ul>
+                                          <li>VMware template with public SSH key and network (or DHCP)</li> 
+                                          <li>DNS entry for new host with a free IP adres</li> 
+                                        </ul>
+                                        </section>
+				        <section>
+					<h2>VMware integration</h2>
+                                        <pre><code contenteditable class="bash">
+$ puppet node_vmware create --template [template] --name [hostname] --wait-for-boot
+$ puppet node install --login root --keyfile=~/.ssh/id_rsa --install-script puppet-enterprise 
+--installer-payload puppet-enterprise.tar.gz --installer-answers agent.answer
+--puppetagent-certname [hostname] [i]
+                                        </code></pre>
+                                <a href="http://puppetspecialist.nl/2012/12/single-command-server-deployment/">Single command server deployment</a>
+				        </section>
+                                </section>
+				<section>
+                                        <section>
+					<h2>Puppet Forge</h2>
+                                        <ul>
+                                          <li>Published modules by Puppetlabs and third parties</li>
+                                          <li>Ratings, download count</li>
+                                          <li>Puppet Enterprise has supported modules</li>
+                                        </ul>
+                                        </section>
+				        <section>
+					<h2>Puppet Forge</h2>
+                                        <ul>
+                                          <li>Very high quality and very poor quality modules</li>
+                                          <li>Some are outdated, causing failures with newer Puppet version</li>
+                                          <li><a href="https://forge.puppetlabs.com">https://forge.puppetlabs.com</a></li>
+                                        </ul>
+                                        </section>
+				        <section>
+					<h2>Puppet Forge</h2>
+                                        <pre><code contenteditable class="bash">
+$ puppet module search java
+$ puppet module install puppetlabs/java
+</code></pre>
+                                        </section>
 				</section>
+                                <section>
+                                        <section>
+                                        <h2>Report OpenView</h2>
+                                        <pre><code contenteditable class="ruby">
+require 'puppet'
+require 'yaml'
+
+Puppet::Reports.register_report(:hpoml) do
+  desc <<-DESC
+  Send notification of Puppet runs to OpenView.
+  DESC
+
+  def process
+    if self.status == 'failed'
+      opcstatus = 1
+    else
+      opcstatus = 0
+    end
+
+    %x{/opt/OV/bin/opcmon TEMPLATENAME=#{opcstatus} -object OBJECTNAME
+  end
+end
+</code></pre>
+                                        </section>
+                                </section>
+                                <section>
+                                        <section>
+                                        <h2>PuppetDB</h2>
+                                        <ul>
+                                          <li>Puppet 'data warehouse', keeps almost all Puppet related data</li>
+                                          <li>Used for catalog storage, facts storage, and exported resources</li>
+                                          <li>Enabled by default in PE 3.7</li>
+                                          <li>Will be able to store historical data soon...</li>
+                                          <li>Technical dashboard @ http://[puppetmaster]:8080</li>
+                                        </ul>
+                                        </section>
+                                        <section>
+                                        <h2>PuppetDB</h2>
+                                        <ul>
+                                          <li>Can be used to query through REST API</li>
+                                        </ul>
+                                        <pre><code contenteditable class="bash">
+$ curl 'http://localhost:8080/v3/nodes'
+$ curl 'http://localhost:8080/v3/nodes/peagent.local/facts'
+$ curl -G 'http://localhost:8080/reports' 
+--data-urlencode 'query=["=", "certname", "peagent.local"]'
+$ curl -G 'http://localhost:8080/v3/events' 
+--data-urlencode 'query=["=", "report", "012c59de89c92db5fc25b22edcef532fb9975034"]' 
+--data-urlencode 'limit=1000'
+</code></pre>
+                                        </section>
+                                </section>
+                                <section>
+                                        <section>
+                                        <h2>XL Deploy</h2>
+                                        <ul>
+                                          <li>Install XL Deploy server and/or XL Deploy CLI</li>
+                                          <li>Create Infrastructure and Environment CIs</li>
+                                        </ul>
+                                        </section>
+
+                                        <section>
+                                        <h2>XL Deploy</h2>
+                                        <pre><code contenteditable class="ruby">
+xldeploy_container { "Infrastructure/$environment/$fqdn/$hostname":
+  type => 'jbossas.ServerV5',
+  properties => {
+    home => hiera('jbossas::home'),
+    serverName => hiera('jbossas::configuration'),
+  },
+  server => Xldeploy["xld-server"],
+  environments => "Environments/$environment/App-$environment",
+}
+
+xldeploy_dictionary { "Environments/$environment/App-$environment-$hostname.dict":
+  server => Xldeploy["xld-server"],
+  environments => "Environments/$environment/App-$environment",
+  entries => {
+    'TITLE' => "Hello from {{IP}}",
+    'IP' => $ipaddress_eth1,
+    'log.level' => hiera('config::loglevel'),
+    'log.file.path' => hiera('config::logfilepath'),
+  },
+  restrict_to_containers => ["Infrastructure/$environment/$fqdn/$hostname"],
+}
+</code></pre>
+                                        </section>
+
+                                        <section>
+                                        <h2>XL Deploy</h2>
+                                        <ul>
+                                          <li><a href="https://github.com/xebialabs/puppet-xldeploy">https://github.com/xebialabs/puppet-xldeploy</a></li>
+                                          <li><a href="https://github.com/bmoussaud/xl-deploy-puppet-sample">https://github.com/bmoussaud/xl-deploy-puppet-sample</a></li>
+                                        </ul>
+                                        </section>
+                                </section>
+                                <section>
+                                        <section>
+                                        <h2>Windows</h2>
+                                        <ul>
+                                          <li>Agent only, master is not supported</li>
+                                          <li>Facter is present</li>
+                                        </ul>
+                                        </section>
+                                        <section>
+                                        <h2>Windows</h2>
+                                        <p>Examples</p>
+                                        <pre><code contenteditable class="ruby">
+exec { 'Install SMTP server':
+  command => '(Import-Module ServerManager; Add-WindowsFeature SMTP-Server)',
+  path    => $::path,
+  onlyif  => 'Import-Module ServerManager; if((Get-WindowsFeature SMTP-Server).installed | select-string -pattern "True") { exit 1}',
+  provider  => 'powershell',
+}
+</code></pre>
+<pre><code contenteditable class="ruby">
+package { 'Microsoft SQL Server 2008 R2 Native Client':
+  ensure  => present,
+  source  => '\\NAS\Installation Media\sqlncli.msi',
+  provider  => 'windows',
+  install_options => [ { 'USERNAME' => 'Administrator' },
+{ 'COMPANYNAME' => 'Company' },
+{ 'IACCEPTSQLNCLILICENSETERMS' => 'YES'} ],
+}
+</code></pre>
+                                        </section>
+                                        <section>
+                                          <h2>Windows</h2>
+                                          <p>Examples</p>
+<pre><code contenteditable class="ruby">
+class iis {
+ 
+  Dism { ensure => present, }
+  dism { 'IIS-WebServerRole': } ->
+  dism { 'IIS-WebServer': }
+ 
+}
+</pre></code>
+
+<pre><code contenteditable class="ruby">
+acl { 'c:/tempperms':
+  permissions => [
+   { identity => 'Administrator', rights => ['full'] },
+   { identity => 'Users', rights => ['read','execute'] }
+ ],
+}
+</pre></code>
+                                        </section>
+
+                                        <section>
+                                          <h2>Windows</h2>
+                                          <p>Links</p>
+           
+                                        <ul>
+                                          <li><a href="https://forge.puppetlabs.com/puppetlabs/registry">https://forge.puppetlabs.com/puppetlabs/registry</a></li>
+                                          <li><a href="https://forge.puppetlabs.com/puppetlabs/dism">https://forge.puppetlabs.com/puppetlabs/dism</a></li>
+                                          <li><a href="https://forge.puppetlabs.com/puppetlabs/reboot">https://forge.puppetlabs.com/puppetlabs/reboot</a></li>
+                                        </ul>
+                                        </section>
+                                </section>
+                                <section>
+                                  <section>
+                                  <h2>Best practice</h2>
+                                  <p>Validate your code</p>
+                                    <pre><code contenteditable="bash">
+$ puppet parser validate test.pp
+$ /opt/puppet/bin/gem install puppet-lint
+$ /opt/puppet/bin/puppet-lint test.pp
+</code></pre>
+                                  </section>
+
+                                  <section>
+                                  <h2>Best practice</h2>
+                                  <p>Test your code</p>
+                                  <ul>
+                                    <li><a href="http://rspec-puppet.com/">rspec-puppet</a></li>
+                                    <li><a href="https://github.com/puppetlabs/beaker/wiki/How-to-Write-a-Beaker-Test-for-a-Module">beaker</a></li>
+                                  </ul>
+                                  </section>
+                                  <section>
+                                  <h2>Best practice</h2>
+                                  <p>Distribute your code</p>
+                                  <ul>
+                                    <li><a href="http://garylarizza.com/blog/2014/02/18/puppet-workflow-part-3/">r10k</a></li>
+                                  </ul>
+                                  </section>
+                                  <section>
+                                  <h2>Best practice</h2>
+                                  <p>High available</p>
+                                  <ul>
+                                    <li>Load balance your Puppet master</li>
+                                  </ul>
+                                  </section>
+
+
+                                </section>
+
 			</div>
 		</div>
 
